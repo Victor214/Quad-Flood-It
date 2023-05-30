@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33403.182
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "Game\Game.csproj", "{B367536A-6488-466B-9679-1B3BB479F8F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Game", "Game\Game.csproj", "{B367536A-6488-466B-9679-1B3BB479F8F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solver", "Solver\Solver.csproj", "{A8B48B17-DFCC-4478-B29A-333D0B586265}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{B367536A-6488-466B-9679-1B3BB479F8F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B367536A-6488-466B-9679-1B3BB479F8F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B367536A-6488-466B-9679-1B3BB479F8F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8B48B17-DFCC-4478-B29A-333D0B586265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8B48B17-DFCC-4478-B29A-333D0B586265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8B48B17-DFCC-4478-B29A-333D0B586265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8B48B17-DFCC-4478-B29A-333D0B586265}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
