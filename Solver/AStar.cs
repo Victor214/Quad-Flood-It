@@ -25,6 +25,12 @@ namespace Solver
             {
                 State state = Open.Dequeue();
 
+                List<State> children = state.Expand();
+                foreach (State child in children)
+                {
+                    if (child.IsGoal())
+                        return child;
+                }
             }
         }
         #endregion

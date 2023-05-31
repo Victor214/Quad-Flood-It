@@ -29,5 +29,23 @@ namespace Solver
         {
             return PathCost + GetHeuristic();
         }
+
+        public List<State> Expand()
+        {
+            return Board.GetChildrenMoves()
+                .Select(x => new State(x, this))
+                .ToList();
+        }
+
+        public bool IsGoal()
+        {
+            foreach (var pivot in Board.Pivots)
+            {
+                if (pivot.Value.Neighbours.Count > 0)
+                    return false;
+            }
+
+            return true;
+        }
     }
 }
