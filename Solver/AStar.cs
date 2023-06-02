@@ -19,7 +19,7 @@ namespace Solver
         }
 
         #region Public Methods
-        public void Solve()
+        public State Solve()
         {
             while (Open.Count > 0)
             {

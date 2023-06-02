@@ -20,6 +20,15 @@ namespace Game
             Board = board;
         }
 
+        public Island Clone(Board board)
+        {
+            return new Island(board)
+            {
+                Color = this.Color,
+                Tiles = this.Tiles.ToList()
+            };
+        }
+
         public void Paint(int color)
         {
             Color = color;

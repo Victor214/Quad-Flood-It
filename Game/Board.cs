@@ -25,31 +25,33 @@ namespace Game
             Parse(boardText);
         }
 
-        // Returns up to 4*(c-1) different boards
-        // This is reduced in case of two - four pivots pointing to the same node
-        public List<Board> GetChildrenMoves()
+        public int GetBoardMaxDepth(string pivot)
         {
-            foreach (var pivot in Pivots.Values.Distinct())
+            var visitedMap = new Dictionary<Island, int>();
+            var queue = new Queue<Island>();
+
+            queue.Enqueue(Pivots[pivot]);
+            visitedMap.Add(queue.Peek(), 0);
+            int max = 0;
+
+            while (queue.Count > 0)
             {
-                for (int i = 0; i < MaxColors; i++)
+                var current = queue.Dequeue();
+                foreach (var island in current.Neighbours)
                 {
-                    var board = this.Clone();
-                } 
+                    if (visitedMap.ContainsKey(island))
+                        continue;
+
+                    int distance = visitedMap[current] + 1;
+                    if (distance > max)
+                        max = distance;
+
+                    visitedMap.Add(island, distance);
+                    queue.Enqueue(island);
+                }
             }
 
-            return new List<Board>();
-        }
-
-        private Board Clone()
-        {
-            Board board = new Board()
-            {
-                Width = Width,
-                Height = Height,
-                MaxColors = MaxColors
-            };
-
-            CloneIslands(board);
+            return max;
         }
 
         #region Board Parsing
@@ -166,66 +168,56 @@ namespace Game
 
             return islandMap[i, j];
         }
+        #endregion
+
+        #region Board Replicating
+        public Board Clone()
+        {
+            Board board = new Board()
+            {
+                Width = Width,
+                Height = Height,
+                MaxColors = MaxColors
+            };
+
+            CloneIslands(board);
+            return board;
+        }
 
         private void CloneIslands(Board board)
         {
-            var island = Pivots.FirstOrDefault().Value;
-            var counted = new Dictionary<Island, Island> { };
+            var visitedMap = new Dictionary<Island, Island>();
+            var queue = new Queue<Island>();
 
-            CloneIsland(board, island, counted);
+            var rootIsland = Pivots.FirstOrDefault().Value;
+            queue.Enqueue(rootIsland);
+            visitedMap.Add(rootIsland, rootIsland.Clone(board));
+
+            while (queue.Count > 0)
+            {
+                var island = queue.Dequeue();
+                var clonedIsland = visitedMap[island];
+
+                foreach (var neighbour in island.Neighbours)
+                {
+                    if (visitedMap.ContainsKey(neighbour))
+                    {
+                        continue;
+                    }
+
+                    Island clonedNeighbour = neighbour.Clone(board);
+                    clonedIsland.Connect(clonedNeighbour);
+
+                    queue.Enqueue(neighbour);
+                    visitedMap.Add(neighbour, clonedNeighbour);
+                }
+            }
 
             foreach (var pivot in Pivots)
             {
-                board.Pivots.Add(pivot.Key, counted[pivot.Value]);
+                board.Pivots.Add(pivot.Key, visitedMap[pivot.Value]);
             }
         }
-
-        private Island CloneIsland(Board board, Island island, Dictionary<Island, Island> counted)
-        {
-            // Duplicate check
-            if (counted.ContainsKey(island))
-            {
-                return counted[island];
-            }
-
-            Island clonedIsland = new Island(board)
-            {
-                Color = island.Color,
-                Tiles = island.Tiles.ToList(),
-            };
-            counted.Add(island, clonedIsland); // Add original, cloned pair to counted dictionary
-
-            foreach (var neighbour in island.Neighbours) // Clone neighbours recursively, or return existing if already cloned
-            {
-                Island clonedNeighbour = CloneIsland(board, neighbour, counted);
-                clonedIsland.Connect(clonedNeighbour); // Attempt to connect (will be ignored if already connected)
-            }
-
-            return clonedIsland;
-        }
-
-        //private int GetTotalColors()
-        //{
-        //    var island = Pivots.FirstOrDefault().Value;
-        //    var counted = new HashSet<Island> { };
-
-        //    GetTotalColors(island, counted);
-
-        //    return counted.Count;
-        //}
-
-        //private void GetTotalColors(Island island, HashSet<Island> counted)
-        //{
-        //    if (counted.Contains(island))
-        //        return;
-
-        //    counted.Add(island); // Add itself
-
-        //    foreach (var neighbour in island.Neighbours) // Add neighbours recursively
-        //    {
-        //        GetTotalColors(neighbour, counted);
-        //    }
-        //}
         #endregion
 
     }
