@@ -12,17 +12,15 @@ namespace Game
     {
         public int Width { get; set; }
         public int Height { get; set; }
-        public int MaxColors { get; set; }
         public Dictionary<string, Island> Pivots { get; set; } = new Dictionary<string, Island>();
 
-        public Board()
+        private int[] _colorMap;
+        public int TotalColors
         {
-
-        }
-
-        public Board(string boardText)
-        {
-            Parse(boardText);
+            get
+            {
+                return _colorMap.Count(x => x > 0);
+            }
         }
 
         public int GetBoardMaxDepth(string pivot)
@@ -55,15 +53,15 @@ namespace Game
         }
 
         #region Board Parsing
-        private void Parse(string boardText)
+        public Board(string boardText)
         {
             string[] boardLines = boardText.Replace("\r", "").Split('\n');
             string[] line = boardLines[0].Split(' ');
             Width = Convert.ToInt32(line[0]);
             Height = Convert.ToInt32(line[1]);
-            MaxColors = Convert.ToInt32(line[2]);
+            _colorMap = new int[Convert.ToInt32(line[2])];
 
-            var board = new int[Height,Width];
+            var board = new int[Height, Width];
             for (int i = 0; i < Height; i++)
             {
                 line = boardLines[i + 1].Split(' ');
@@ -90,6 +88,7 @@ namespace Game
                     Island island = new Island(this);
                     island.Tiles = GetIslandTiles(board, i, j).ToList();
                     island.Color = board[i, j];
+                    _colorMap[island.Color] += 1;
 
                     foreach (var tile in island.Tiles)
                         islandMap[tile.Y, tile.X] = island;
@@ -171,15 +170,16 @@ namespace Game
         #endregion
 
         #region Board Replicating
+        private Board(int width, int height, int[] colorMap)
+        {
+            Width = width;
+            Height = height;
+            _colorMap = colorMap.ToArray();
+        }
+
         public Board Clone()
         {
-            Board board = new Board()
-            {
-                Width = Width,
-                Height = Height,
-                MaxColors = MaxColors
-            };
-
+            Board board = new Board(width: this.Width, height: this.Height, colorMap: this._colorMap);
             CloneIslands(board);
             return board;
         }

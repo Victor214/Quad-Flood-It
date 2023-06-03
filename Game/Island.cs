@@ -31,13 +31,16 @@ namespace Game
 
         public void Paint(int color)
         {
+            if (Color == color)
+                return;
+            // Adjust _colorMap
             Color = color;
 
             // Looking beyond the immediate neighbours for same-color neighbours doesn't make sense / is not required, because these islands are assumed to be already valid.
             foreach (var neighbour in Neighbours.Where(x => x.Color == Color))
             {
                 Merge(neighbour);
-                AdjustPivot(neighbour);
+                AdjustPivot(neighbour); // This is needed for when a pivot is absorbing another pivot
             }
         }
 
@@ -71,17 +74,13 @@ namespace Game
 
             // Transfer/adjust neighbour pointers
             this.Disconnect(island);
-            foreach (var current in island.Neighbours)
+            foreach (var current in island.Neighbours.ToList())
             {
-                current.Neighbours.Remove(island);
-                if (!current.Neighbours.Contains(this))
-                {
-                    if (this.Neighbours.Contains(current))
-                        throw new Exception("Unmirrored neighbour pointers, this should not happen!");
-
-                    this.Connect(current);
-                }
+                // If already connected / disconnected, will be ignored.
+                current.Disconnect(island);
+                this.Connect(current);
             }
+
             island.Neighbours.Clear(); // Make sure we leave no pointers on merging object, just in case.
         }
 

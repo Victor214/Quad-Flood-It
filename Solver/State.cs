@@ -15,6 +15,18 @@ namespace Solver
         public int PathCost { get; set; }
         public string? Pivot { get; set; }
 
+        private Board? _currentBoard;
+        public Board CurrentBoard
+        {
+            get
+            {
+                if (_currentBoard == null)
+                    _currentBoard = ReconstructBoard();
+
+                return _currentBoard;
+            }
+        }
+
         public State(Board board, State? parent = null)
         {
             RootBoard = board;
@@ -26,14 +38,11 @@ namespace Solver
 
         public int GetHeuristic(Board? board = null, string? pivot = null)
         {
-            if (board == null) // Make this not instantiate every time?
-                board = ReconstructBoard();
-
             if (pivot == null)
                 pivot = Pivot;
             
             // Maybe make heuristic as board total colors, and board max depth as tiebreaker
-            return board.GetBoardMaxDepth(pivot!);
+            return CurrentBoard.GetBoardMaxDepth(pivot!);
         }
 
         public int GetEvaluationFunction()
@@ -43,27 +52,26 @@ namespace Solver
 
         public List<State> Expand()
         {
-            Board board = ReconstructBoard();
-            for (int i = 0; i < board.; i++)
+            for (int i = 0; i < CurrentBoard; i++)
             {
-                var board = this.Clone();
                 // Continue here
             }
-
-            return Board.GetChildrenMoves()
-                .Select(x => new State(x, this))
-                .ToList();
         }
 
         public bool IsGoal()
         {
-            foreach (var pivot in Board.Pivots)
+            foreach (var pivot in CurrentBoard.Pivots)
             {
                 if (pivot.Value.Neighbours.Count > 0)
                     return false;
             }
 
             return true;
+        }
+
+        public void ClearBoard()
+        {
+            _currentBoard = null;
         }
 
         #region Private Methods
@@ -75,12 +83,11 @@ namespace Solver
             string? bestPivot = null;
             int bestPivotMax = int.MaxValue;
 
-            Board board = ReconstructBoard();
-            foreach (var pivot in board.Pivots)
+            foreach (var pivot in CurrentBoard.Pivots)
             {
                 // Get minimum distance among each pivot's max reach.
                 // In other words, the best pivot is the one with the least flips to solution.
-                int max = GetHeuristic(board, pivot.Key);
+                int max = GetHeuristic(CurrentBoard, pivot.Key);
                 if (max < bestPivotMax)
                 {
                     bestPivotMax = max;
