@@ -1,6 +1,7 @@
 ﻿using Game;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,19 +22,34 @@ namespace Solver
             get
             {
                 if (_currentBoard == null)
-                    _currentBoard = ReconstructBoard();
+                {
+                    _currentBoard = RootBoard.Clone();
+                    foreach (var action in Actions)
+                    {
+                        _currentBoard.Paint(_currentBoard.Pivots[action.Pivot!], action.Color);
+                    }
+                }
 
                 return _currentBoard;
             }
         }
 
-        public State(Board board, State? parent = null)
+        public State(Board board)
         {
             RootBoard = board;
-            Parent = parent;
-            PathCost = Parent != null ? Parent.PathCost + 1 : 0;
-            // Actions??
+            PathCost = 0;
+            Actions = new List<Action>();
             Pivot = PickPivot();
+        }
+
+        public State(State source, Action action)
+        {
+            RootBoard = source.RootBoard;
+            Parent = source;
+            PathCost = source.PathCost + 1;
+            Pivot = source.Pivot;
+            Actions = source.Actions.ToList();
+            Actions.Add(action);
         }
 
         public int GetHeuristic(Board? board = null, string? pivot = null)
@@ -52,10 +68,17 @@ namespace Solver
 
         public List<State> Expand()
         {
-            for (int i = 0; i < CurrentBoard; i++)
+            List<State> result = new List<State>();
+            for (int i = 1; i < CurrentBoard.TotalColors; i++)
             {
-                // Continue here
+                if (i == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
+                    continue;
+
+                Action action = new Action(this.Pivot, i);
+                result.Add(new State(this, action));
             }
+
+            return result;
         }
 
         public bool IsGoal()
@@ -77,9 +100,6 @@ namespace Solver
         #region Private Methods
         private string? PickPivot()
         {
-            if (Parent != null)
-                return Parent.Pivot;
-
             string? bestPivot = null;
             int bestPivotMax = int.MaxValue;
 
@@ -96,17 +116,6 @@ namespace Solver
             }
 
             return bestPivot;
-        }
-
-        private Board ReconstructBoard()
-        {
-            Board board = RootBoard.Clone();
-            foreach (var action in Actions)
-            {
-                board.Pivots[action.Pivot!].Paint(action.Color);
-            }
-
-            return board;
         }
         #endregion
     }

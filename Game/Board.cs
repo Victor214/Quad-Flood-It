@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -88,7 +89,7 @@ namespace Game
                     Island island = new Island(this);
                     island.Tiles = GetIslandTiles(board, i, j).ToList();
                     island.Color = board[i, j];
-                    _colorMap[island.Color] += 1;
+                    _colorMap[island.Color - 1] += 1;
 
                     foreach (var tile in island.Tiles)
                         islandMap[tile.Y, tile.X] = island;
@@ -220,5 +221,56 @@ namespace Game
         }
         #endregion
 
+        #region Painting
+        public void Paint(Island source, int newColor)
+        {
+            if (source.Color == newColor)
+                return;
+
+            int oldColor = source.Color;
+            source.Color = newColor;
+            _colorMap[oldColor - 1] -= 1;
+            _colorMap[newColor - 1] += 1;
+
+            // Looking beyond the immediate neighbours for same-color neighbours doesn't make sense / is not required, because these islands are assumed to be already valid.
+            foreach (var neighbour in source.Neighbours.Where(x => x.Color == newColor).ToList())
+            {
+                Merge(source, neighbour);
+                AdjustPivot(source, neighbour); // This is needed for when a pivot is absorbing another pivot
+                _colorMap[newColor - 1] -= 1;
+            }
+        }
+
+        private void Merge(Island source, Island island)
+        {
+            if (!source.Neighbours.Contains(island))
+                throw new ArgumentException("An island merge must happen between neighbouring islands.");
+
+            // Transfer properties, except Color which was already set
+            source.Tiles.AddRange(island.Tiles);
+
+            // Transfer/adjust neighbour pointers
+            source.Disconnect(island);
+            foreach (var current in island.Neighbours.ToList())
+            {
+                // If already connected / disconnected, will be ignored.
+                current.Disconnect(island);
+                source.Connect(current);
+            }
+
+            island.Neighbours.Clear(); // Make sure we leave no pointers on merging object, just in case.
+        }
+
+        private void AdjustPivot(Island source, Island island)
+        {
+            foreach (var pivot in Pivots)
+            {
+                if (pivot.Value == island)
+                {
+                    Pivots[pivot.Key] = source;
+                }
+            }
+        }
+        #endregion
     }
 }

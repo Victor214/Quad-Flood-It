@@ -28,7 +28,7 @@ namespace Solver
                 List<State> children = state.Expand();
                 foreach (State child in children)
                 {
-                    if (child.IsGoal())
+                    if (child.IsGoal()) // Is this test correct?
                         return child;
                 }
             }

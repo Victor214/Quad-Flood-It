@@ -29,21 +29,6 @@ namespace Game
             };
         }
 
-        public void Paint(int color)
-        {
-            if (Color == color)
-                return;
-            // Adjust _colorMap
-            Color = color;
-
-            // Looking beyond the immediate neighbours for same-color neighbours doesn't make sense / is not required, because these islands are assumed to be already valid.
-            foreach (var neighbour in Neighbours.Where(x => x.Color == Color))
-            {
-                Merge(neighbour);
-                AdjustPivot(neighbour); // This is needed for when a pivot is absorbing another pivot
-            }
-        }
-
         public void Connect(Island that)
         {
             if (this.Neighbours.Contains(that) || that.Neighbours.Contains(this))
@@ -61,40 +46,6 @@ namespace Game
             this.Neighbours.Remove(that);
             that.Neighbours.Remove(this);
         }
-
-        #region Helper Methods
-        private void Merge(Island island)
-        {
-            if (!Neighbours.Contains(island))
-                throw new ArgumentException("An island merge must happen between neighbouring islands.");
-
-            // Transfer properties
-            Color = island.Color;
-            Tiles.AddRange(island.Tiles);
-
-            // Transfer/adjust neighbour pointers
-            this.Disconnect(island);
-            foreach (var current in island.Neighbours.ToList())
-            {
-                // If already connected / disconnected, will be ignored.
-                current.Disconnect(island);
-                this.Connect(current);
-            }
-
-            island.Neighbours.Clear(); // Make sure we leave no pointers on merging object, just in case.
-        }
-
-        private void AdjustPivot(Island island)
-        {
-            foreach (var pivot in Board.Pivots)
-            {
-                if (pivot.Value == island)
-                {
-                    Board.Pivots[pivot.Key] = this;
-                }
-            }
-        }
-        #endregion
 
     }
 }
