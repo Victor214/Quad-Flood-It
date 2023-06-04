@@ -10,28 +10,37 @@ namespace Solver
     public class AStar
     {
         private State InitialState { get; set; }
-        private PriorityQueue<State, int> Open { get; set; } = new PriorityQueue<State, int>();
+        private List<StatePriority> Open { get; set; } = new();
+        private HashSet<State> Closed { get; set; } = new();
 
         public AStar(Board board)
         {
             InitialState = new State(board);
-            Open.Enqueue(InitialState, InitialState.GetEvaluationFunction());
+            Open.AddSorted(new StatePriority(InitialState, InitialState.GetEvaluationFunction()));
         }
 
         #region Public Methods
-        public State Solve()
+        public State? Solve()
         {
             while (Open.Count > 0)
             {
-                State state = Open.Dequeue();
+                State state = Open.Pop();
+
+                if (state.IsGoal())
+                    return state;
 
                 List<State> children = state.Expand();
                 foreach (State child in children)
                 {
-                    if (child.IsGoal()) // Is this test correct?
-                        return child;
+                    Open.AddSorted(new StatePriority(child, child.GetEvaluationFunction()));
+                    child.ClearBoard();
                 }
+
+                state.ClearBoard();
+                Closed.Add(state);
             }
+
+            return null;
         }
         #endregion
 
@@ -39,5 +48,32 @@ namespace Solver
         #region Private Methods
         
         #endregion
+    }
+
+    public static class ListExtensions
+    {
+        public static State Pop(this List<StatePriority> list)
+        {
+            var result = list[0];
+            list.RemoveAt(0);
+            return result.State;
+        }
+
+        public static void AddSorted(this List<StatePriority> list, StatePriority element)
+        {
+            if (list.Count == Configuration.MaxElements)
+                list.RemoveAt(list.Count-1); // Remove last
+
+            int x = list.BinarySearch(element, new StatePriorityComparer());
+            list.Insert((x >= 0) ? x : ~x, element);
+        }
+    }
+
+    public class StatePriorityComparer : Comparer<StatePriority>
+    {
+        public override int Compare(StatePriority? x, StatePriority? y)
+        {
+            return x!.Priority.CompareTo(y!.Priority);
+        }
     }
 }
