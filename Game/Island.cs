@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    public class Island
+    public class Island //: IEquatable<Island>
     {
         public Board Board { get; set; }
         public int Color { get; set; }
@@ -46,6 +46,64 @@ namespace Game
             this.Neighbours.Remove(that);
             that.Neighbours.Remove(this);
         }
+
+        #region Equals / GetHashCode Overriding
+        //public bool Equals(Island? other)
+        //{
+        //    if (ReferenceEquals(other, null))
+        //        return false;
+        //    if (ReferenceEquals(this, other))
+        //        return true;
+
+        //    if (this.Color != other.Color)
+        //        return false;
+
+        //    var tiles = Tiles.ToDictionary(x => x, x => x);
+        //    var otherTiles = other.Tiles.ToDictionary(x => x, x => x);
+
+        //    if (tiles.Count != otherTiles.Count)
+        //        return false;
+
+        //    foreach (var tile in tiles)
+        //    {
+        //        if (!otherTiles.ContainsKey(tile.Key)) // GetHashCode Check
+        //            return false;
+
+        //        if (!tile.Key.Equals(otherTiles[tile.Key])) // Actual ValueEquals Check
+        //            return false;
+        //    }
+
+        //    return true;
+        //}
+
+        //public override bool Equals(object? other) => Equals(other as Island);
+
+        //public static bool operator ==(Island? left, Island? right)
+        //{
+        //    if (ReferenceEquals(left, right))
+        //        return true;
+        //    if (ReferenceEquals(left, null))
+        //        return false;
+        //    if (ReferenceEquals(right, null))
+        //        return false;
+
+        //    return left.Equals(right);
+        //}
+
+        //public static bool operator !=(Island? left, Island? right)
+        //{
+        //    return !(left == right);
+        //}
+
+        //public override int GetHashCode()
+        //{
+        //    int tilesHashCode = Tiles
+        //        .Select(x => x.GetHashCode())
+        //        .Aggregate((result, item) => result ^ item);
+
+        //    return HashCode.Combine(Color, tilesHashCode);
+        //}
+        #endregion
 
     }
 }

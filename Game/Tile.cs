@@ -16,5 +16,10 @@ namespace Game
             X = x;
             Y = y;
         }
+
+        //public override int GetHashCode()
+        //{
+        //    return HashCode.Combine(X, Y);
+        //}
     }
 }

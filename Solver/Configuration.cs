@@ -8,6 +8,6 @@ namespace Solver
 {
     public static class Configuration
     {
-        public const int MaxElements = 10000;
+        public const int MaxElements = 1000000;
     }
 }

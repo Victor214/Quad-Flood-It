@@ -17,6 +17,7 @@ namespace Solver
         {
             InitialState = new State(board);
             Open.AddSorted(new StatePriority(InitialState, InitialState.GetEvaluationFunction()));
+            //InitialState.ClearBoard();
         }
 
         #region Public Methods
@@ -24,7 +25,7 @@ namespace Solver
         {
             while (Open.Count > 0)
             {
-                State state = Open.Pop();
+                State state = Open.Dequeue();
 
                 if (state.IsGoal())
                     return state;
@@ -32,6 +33,21 @@ namespace Solver
                 List<State> children = state.Expand();
                 foreach (State child in children)
                 {
+                    // State already exists, so replace if better than previously found
+                    // REMINDER: A State is equal to another state if their respective CurrentBoards are equal.
+                    //if (Closed.Contains(child))
+                    //{
+                    //    Closed.TryGetValue(child, out State? repeated);
+                    //    if (child.PathCost < repeated!.PathCost)
+                    //    {
+                    //        Closed.Remove(repeated);
+                    //        Closed.Add(child);
+                    //    }
+
+                    //    continue;
+                    //}
+
+
                     Open.AddSorted(new StatePriority(child, child.GetEvaluationFunction()));
                     child.ClearBoard();
                 }
@@ -46,13 +62,13 @@ namespace Solver
 
 
         #region Private Methods
-        
+
         #endregion
     }
 
     public static class ListExtensions
     {
-        public static State Pop(this List<StatePriority> list)
+        public static State Dequeue(this List<StatePriority> list)
         {
             var result = list[0];
             list.RemoveAt(0);

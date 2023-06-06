@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Solver
 {
-    public class State
+    public class State //: IEquatable<State>
     {
         public Board RootBoard { get; set; }
         public List<Action> Actions { get; set; }
@@ -63,18 +63,22 @@ namespace Solver
 
         public int GetEvaluationFunction()
         {
-            return PathCost + GetHeuristic();
+            //return PathCost + (CurrentBoard.TotalColors + GetHeuristic());
+            //return (CurrentBoard.TotalColors-1) + GetHeuristic();
+            //float costWeight = (1 + 0.02f * CurrentBoard.Width);
+            int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[Pivot!].Tiles.Count);
+            return (int)(PathCost + CurrentBoard.TotalColors + GetHeuristic() + tilesRemaining/CurrentBoard.Width);
         }
 
         public List<State> Expand()
         {
             List<State> result = new List<State>();
-            for (int i = 1; i < CurrentBoard.TotalColors; i++)
+            foreach (var color in CurrentBoard.GetRemainingColors())
             {
-                if (i == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
+                if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
                     continue;
 
-                Action action = new Action(this.Pivot, i);
+                Action action = new Action(this.Pivot, color);
                 result.Add(new State(this, action));
             }
 
@@ -96,6 +100,45 @@ namespace Solver
         {
             _currentBoard = null;
         }
+
+        #region Equals / GetHashCode Overriding
+        //public bool Equals(State? other)
+        //{
+        //    if (ReferenceEquals(other, null))
+        //        return false;
+        //    if (ReferenceEquals(this, other))
+        //        return true;
+
+        //    return CurrentBoard.Equals(other.CurrentBoard);
+        //}
+
+        //public override bool Equals(object? other) => Equals(other as State);
+
+        //public static bool operator==(State? left, State? right)
+        //{
+        //    if (ReferenceEquals(left, right))
+        //        return true;
+        //    if (ReferenceEquals(left, null))
+        //        return false;
+        //    if (ReferenceEquals(right, null))
+        //        return false;
+
+        //    return left.Equals(right);
+        //}
+
+        //public static bool operator!=(State? left, State? right)
+        //{
+        //    return !(left == right);
+        //}
+
+        //public override int GetHashCode()
+        //{
+        //    unchecked
+        //    {
+        //        return CurrentBoard.GetHashCode();
+        //    }
+        //}
+        #endregion
 
         #region Private Methods
         private string? PickPivot()
