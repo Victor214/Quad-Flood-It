@@ -56,18 +56,15 @@ namespace Solver
         {
             if (pivot == null)
                 pivot = Pivot;
-            
+
             // Maybe make heuristic as board total colors, and board max depth as tiebreaker
-            return CurrentBoard.GetBoardMaxDepth(pivot!);
+            int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles.Count);
+            return CurrentBoard.TotalColors + CurrentBoard.GetBoardMaxDepth(pivot!) + tilesRemaining/CurrentBoard.Width;
         }
 
         public int GetEvaluationFunction()
         {
-            //return PathCost + (CurrentBoard.TotalColors + GetHeuristic());
-            //return (CurrentBoard.TotalColors-1) + GetHeuristic();
-            //float costWeight = (1 + 0.02f * CurrentBoard.Width);
-            int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[Pivot!].Tiles.Count);
-            return (int)(PathCost + CurrentBoard.TotalColors + GetHeuristic() + tilesRemaining/CurrentBoard.Width);
+            return PathCost + GetHeuristic();
         }
 
         public List<State> Expand()
