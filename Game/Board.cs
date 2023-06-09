@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Game
+﻿namespace Game
 {
     public class Board //: IEquatable<Board>
     {
@@ -29,6 +18,11 @@ namespace Game
         public List<int> GetRemainingColors()
         {
             return Enumerate().Select(x => x.Key.Color).Distinct().ToList();
+        }
+
+        public List<int> GetAdjacentColors(string pivot)
+        {
+            return Pivots[pivot].Neighbours.Select(x => x.Color).Distinct().ToList();
         }
 
         public int GetBoardMaxDepth(string pivot)

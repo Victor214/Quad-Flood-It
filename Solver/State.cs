@@ -65,7 +65,7 @@ namespace Solver
 
             // Maybe make heuristic as board total colors, and board max depth as tiebreaker
             int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles);
-            return CurrentBoard.TotalColors + CurrentBoard.GetBoardMaxDepth(pivot!) + tilesRemaining;
+            return CurrentBoard.TotalColors /*+ CurrentBoard.GetBoardMaxDepth(pivot!)*/ + tilesRemaining;
         }
 
         public int GetEvaluationFunction()
@@ -102,7 +102,7 @@ namespace Solver
         {
             ConcurrentBag<State> states = new ConcurrentBag<State>();
 
-            Parallel.ForEach(CurrentBoard.GetRemainingColors(), color =>
+            Parallel.ForEach(CurrentBoard.GetAdjacentColors(Pivot!), color =>
             {
                 if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
                     return;
@@ -178,16 +178,16 @@ namespace Solver
         private string? PickPivot()
         {
             string? bestPivot = null;
-            int bestPivotMax = int.MaxValue;
+            int bestPivotDepth = int.MaxValue;
 
             foreach (var pivot in CurrentBoard.Pivots)
             {
                 // Get minimum distance among each pivot's max reach.
                 // In other words, the best pivot is the one with the least flips to solution.
-                int max = GetHeuristic(CurrentBoard, pivot.Key);
-                if (max < bestPivotMax)
+                int depth = CurrentBoard.GetBoardMaxDepth(pivot.Key);
+                if (depth < bestPivotDepth)
                 {
-                    bestPivotMax = max;
+                    bestPivotDepth = depth;
                     bestPivot = pivot.Key;
                 }
             }
