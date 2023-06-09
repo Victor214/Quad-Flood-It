@@ -93,7 +93,7 @@ namespace Game
                     if (islandMap[i, j] != null)
                         continue;
 
-                    Island island = new Island(this);
+                    Island island = new Island();
                     var tiles = GetIslandTiles(board, i, j).ToList();
                     island.Color = board[i, j];
                     island.Tiles = tiles.Count;
@@ -427,7 +427,7 @@ namespace Game
 
             var rootIsland = Pivots.FirstOrDefault().Value;
             queue.Enqueue(rootIsland);
-            visitedMap.Add(rootIsland, rootIsland.Clone(board));
+            visitedMap.Add(rootIsland, rootIsland.Clone());
 
             while (queue.Count > 0)
             {
@@ -442,7 +442,7 @@ namespace Game
                         continue;
                     }
 
-                    Island clonedNeighbour = neighbour.Clone(board);
+                    Island clonedNeighbour = neighbour.Clone();
                     //clonedIsland.Connect(clonedNeighbour);
 
                     queue.Enqueue(neighbour);

@@ -9,20 +9,19 @@ namespace Game
 {
     public class Island //: IEquatable<Island>
     {
-        public Board Board { get; set; }
         public int Color { get; set; }
         public int Tiles { get; set; }
 
         public HashSet<Island> Neighbours { get; set; } = new HashSet<Island>();
 
-        public Island(Board board)
+        public Island()
         {
-            Board = board;
+
         }
 
-        public Island Clone(Board board)
+        public Island Clone()
         {
-            return new Island(board)
+            return new Island()
             {
                 Color = this.Color,
                 Tiles = this.Tiles
