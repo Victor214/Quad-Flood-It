@@ -1,7 +1,7 @@
 ﻿using Game;
 using Solver;
 
-string boardText = File.ReadAllText(@"Boards/example2_30_30_10.txt");
+string boardText = File.ReadAllText(@"Boards/example3_100_100_30.txt");
 Board board = new Board(boardText);
 
 AStar aStar = new AStar(board);

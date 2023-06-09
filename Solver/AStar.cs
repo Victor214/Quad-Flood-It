@@ -1,6 +1,7 @@
 ﻿using Game;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,9 +24,14 @@ namespace Solver
         #region Public Methods
         public State? Solve()
         {
+
             while (Open.Count > 0)
             {
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+
                 State state = Open.Dequeue();
+                
 
                 if (state.IsGoal())
                     return state;
@@ -52,8 +58,11 @@ namespace Solver
                     child.ClearBoard();
                 }
 
-                state.ClearBoard();
+                timer.Stop();
+                Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / Elapsed: {timer.ElapsedMilliseconds}ms");
+
                 Closed.Add(state);
+                state.ClearBoard();
             }
 
             return null;

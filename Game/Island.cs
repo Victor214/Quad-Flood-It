@@ -11,7 +11,7 @@ namespace Game
     {
         public Board Board { get; set; }
         public int Color { get; set; }
-        public List<Tile> Tiles { get; set; } = new List<Tile>();
+        public int Tiles { get; set; }
 
         public HashSet<Island> Neighbours { get; set; } = new HashSet<Island>();
 
@@ -25,17 +25,18 @@ namespace Game
             return new Island(board)
             {
                 Color = this.Color,
-                Tiles = this.Tiles.ToList()
+                Tiles = this.Tiles
             };
         }
 
-        public void Connect(Island that)
+        public bool Connect(Island that)
         {
             if (this.Neighbours.Contains(that) || that.Neighbours.Contains(this))
-                return;
+                return false;
 
             this.Neighbours.Add(that);
             that.Neighbours.Add(this);
+            return true;
         }
 
         public void Disconnect(Island that)

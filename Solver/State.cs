@@ -1,10 +1,5 @@
 ﻿using Game;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Solver
 {
@@ -23,10 +18,21 @@ namespace Solver
             {
                 if (_currentBoard == null)
                 {
-                    _currentBoard = RootBoard.Clone();
-                    foreach (var action in Actions)
+                    // Optimization: If parent's current board is loaded, take a shortcut, loading from it.
+                    if (Parent?._currentBoard != null)
                     {
-                        _currentBoard.Paint(_currentBoard.Pivots[action.Pivot!], action.Color);
+                        _currentBoard = Parent._currentBoard.Clone();
+
+                        Action lastAction = Actions.LastOrDefault()!;
+                        _currentBoard.Paint(_currentBoard.Pivots[lastAction.Pivot!], lastAction.Color); // Only need to apply the latest action
+                    }
+                    else
+                    {
+                        _currentBoard = RootBoard.Clone();
+                        foreach (var action in Actions)
+                        {
+                            _currentBoard.Paint(_currentBoard.Pivots[action.Pivot!], action.Color);
+                        }
                     }
                 }
 
@@ -58,8 +64,8 @@ namespace Solver
                 pivot = Pivot;
 
             // Maybe make heuristic as board total colors, and board max depth as tiebreaker
-            int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles.Count);
-            return CurrentBoard.TotalColors + CurrentBoard.GetBoardMaxDepth(pivot!) + tilesRemaining/CurrentBoard.Width;
+            int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles);
+            return CurrentBoard.TotalColors + CurrentBoard.GetBoardMaxDepth(pivot!) + tilesRemaining;
         }
 
         public int GetEvaluationFunction()
@@ -67,19 +73,50 @@ namespace Solver
             return PathCost + GetHeuristic();
         }
 
+        //public List<State> Expand()
+        //{
+        //    List<State> states = new List<State>();
+        //    var remainingColors = CurrentBoard.GetRemainingColors();
+        //    var clones = CurrentBoard.BulkClone(remainingColors.Count);
+
+        //    for (int i = 0; i < remainingColors.Count; i++)
+        //    {
+        //        var color = remainingColors[i];
+        //        if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
+        //            continue;
+
+
+        //        Action action = new Action(this.Pivot, color);
+        //        State state = new State(this, action);
+
+        //        state._currentBoard = clones[i];
+        //        state._currentBoard.Paint(state._currentBoard.Pivots[action.Pivot!], action.Color);
+
+        //        states.Add(state);
+        //    }
+
+        //    return states;
+        //}
+
         public List<State> Expand()
         {
-            List<State> result = new List<State>();
-            foreach (var color in CurrentBoard.GetRemainingColors())
+            ConcurrentBag<State> states = new ConcurrentBag<State>();
+
+            Parallel.ForEach(CurrentBoard.GetRemainingColors(), color =>
             {
                 if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
-                    continue;
+                    return;
 
                 Action action = new Action(this.Pivot, color);
-                result.Add(new State(this, action));
-            }
+                State state = new State(this, action);
 
-            return result;
+                state._currentBoard = CurrentBoard.Clone();
+                state._currentBoard.Paint(state._currentBoard.Pivots[action.Pivot!], action.Color);
+
+                states.Add(state);
+            });
+
+            return states.ToList();
         }
 
         public bool IsGoal()

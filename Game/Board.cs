@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -92,14 +94,15 @@ namespace Game
                         continue;
 
                     Island island = new Island(this);
-                    island.Tiles = GetIslandTiles(board, i, j).ToList();
+                    var tiles = GetIslandTiles(board, i, j).ToList();
                     island.Color = board[i, j];
+                    island.Tiles = tiles.Count;
                     _colorMap[island.Color - 1] += 1;
 
-                    foreach (var tile in island.Tiles)
+                    foreach (var tile in tiles)
                         islandMap[tile.Y, tile.X] = island;
 
-                    List<Island> distinctGeneratedNeighbours = GetGeneratedNeighbours(islandMap, island).ToList();
+                    List<Island> distinctGeneratedNeighbours = GetGeneratedNeighbours(islandMap, island, tiles).ToList();
                     foreach (var neighbour in distinctGeneratedNeighbours)
                         island.Connect(neighbour);
                 }
@@ -141,14 +144,14 @@ namespace Game
             return tiles;
         }
 
-        private HashSet<Island> GetGeneratedNeighbours(Island[,] islandMap, Island mainIsland)
+        private HashSet<Island> GetGeneratedNeighbours(Island[,] islandMap, Island mainIsland, List<Tile> tiles)
         {
             int[] i = new int[] { 1, -1, 0,  0 };
             int[] j = new int[] { 0,  0, 1, -1 };
 
             HashSet<Island> distinctAdjacentGeneratedIslands = new HashSet<Island>();
 
-            foreach (var tile in mainIsland.Tiles)
+            foreach (var tile in tiles)
             {
                 for (int k = 0; k < 4; k++)
                 { 
@@ -172,58 +175,6 @@ namespace Game
                 return null;
 
             return islandMap[i, j];
-        }
-        #endregion
-
-        #region Board Replicating
-        private Board(int width, int height, int[] colorMap)
-        {
-            Width = width;
-            Height = height;
-            _colorMap = colorMap.ToArray();
-        }
-
-        public Board Clone()
-        {
-            Board board = new Board(width: this.Width, height: this.Height, colorMap: this._colorMap);
-            CloneIslands(board);
-            return board;
-        }
-
-        private void CloneIslands(Board board)
-        {
-            var visitedMap = new Dictionary<Island, Island>();
-            var queue = new Queue<Island>();
-
-            var rootIsland = Pivots.FirstOrDefault().Value;
-            queue.Enqueue(rootIsland);
-            visitedMap.Add(rootIsland, rootIsland.Clone(board));
-
-            while (queue.Count > 0)
-            {
-                var island = queue.Dequeue();
-                var clonedIsland = visitedMap[island];
-
-                foreach (var neighbour in island.Neighbours)
-                {
-                    if (visitedMap.ContainsKey(neighbour))
-                    {
-                        clonedIsland.Connect(visitedMap[neighbour]);
-                        continue;
-                    }
-
-                    Island clonedNeighbour = neighbour.Clone(board);
-                    clonedIsland.Connect(clonedNeighbour);
-
-                    queue.Enqueue(neighbour);
-                    visitedMap.Add(neighbour, clonedNeighbour);
-                }
-            }
-
-            foreach (var pivot in Pivots)
-            {
-                board.Pivots.Add(pivot.Key, visitedMap[pivot.Value]);
-            }
         }
         #endregion
 
@@ -253,7 +204,7 @@ namespace Game
                 throw new ArgumentException("An island merge must happen between neighbouring islands.");
 
             // Transfer properties, except Color which was already set
-            source.Tiles.AddRange(island.Tiles);
+            source.Tiles += island.Tiles;
 
             // Transfer/adjust neighbour pointers
             source.Disconnect(island);
@@ -359,12 +310,179 @@ namespace Game
         //        foreach (var island in islands)
         //        {
         //            hashcode ^= island.GetHashCode();
-                
+
         //        }
 
         //        return hashcode;
         //    }
         //}
         #endregion
+
+
+        #region Board Replicating (Bulk)
+        //private Board(int width, int height, int[] colorMap)
+        //{
+        //    Width = width;
+        //    Height = height;
+        //    _colorMap = colorMap.ToArray();
+        //}
+
+        //public Board Clone()
+        //{
+        //    return BulkClone(1).First();
+        //}
+
+        //public List<Board> BulkClone(int amount)
+        //{
+        //    List<Board> result = new List<Board>();
+        //    for (int i = 0; i < amount; i++)
+        //    {
+        //        result.Add(new Board(width: this.Width, height: this.Height, colorMap: this._colorMap));
+        //    }
+
+        //    BulkCloneIslandGraph(result);
+        //    return result;
+        //}
+
+        //private void BulkCloneIslandGraph(List<Board> boards)
+        //{
+        //    var totalIslands = new HashSet<Island>();
+        //    var visitedMap = new ConcurrentDictionary<Island, ConcurrentDictionary<Board, Island>>();
+        //    var queue = new Queue<Island>();
+
+        //    var rootIsland = Pivots.FirstOrDefault().Value;
+        //    queue.Enqueue(rootIsland);
+        //    totalIslands.Add(rootIsland);
+
+        //    // Add rootIsland to all cloned boards
+        //    //visitedMap.BulkAddIsland(boards, rootIsland);
+
+
+        //    int count = 0;
+        //    while (queue.Count > 0)
+        //    {
+        //        count++;
+        //        var island = queue.Dequeue();
+
+        //        foreach (var neighbour in island.Neighbours)
+        //        {
+        //            if (totalIslands.Contains(neighbour))
+        //            {
+        //                continue;
+        //            }
+
+        //            // Add current neighbour to all cloned boards, and connect to respective islands
+        //            //visitedMap.BulkAddIsland(boards, neighbour);
+        //            totalIslands.Add(neighbour);
+        //            queue.Enqueue(neighbour);
+        //        }
+        //    }
+
+        //    // Clone Islands
+        //    Parallel.ForEach(totalIslands, island =>
+        //    {
+        //        visitedMap.BulkAddIsland(boards, island);
+        //    });
+
+        //    // Copy Neighbours
+        //    Parallel.ForEach(visitedMap, island =>
+        //    {
+        //        foreach (var board in boards)
+        //        {
+        //            foreach (var neighbour in island.Key.Neighbours)
+        //            {
+        //                //visitedMap[island.Key][board].Neighbours.Add(visitedMap[neighbour][board]);
+        //            }
+        //        }
+        //    });
+
+
+        //    // Clone Pivots
+        //    foreach (var pivot in Pivots)
+        //    {
+        //        visitedMap.BulkClonePivot(boards, pivot);
+        //    }
+        //}
+        #endregion
+
+        #region Board Replicating (Single)
+        private Board(int width, int height, int[] colorMap)
+        {
+            Width = width;
+            Height = height;
+            _colorMap = colorMap.ToArray();
+        }
+
+        public Board Clone()
+        {
+            Board board = new Board(width: this.Width, height: this.Height, colorMap: this._colorMap);
+            CloneIslands(board);
+            return board;
+        }
+
+        private void CloneIslands(Board board)
+        {
+            var visitedMap = new Dictionary<Island, Island>();
+            var queue = new Queue<Island>();
+
+            var rootIsland = Pivots.FirstOrDefault().Value;
+            queue.Enqueue(rootIsland);
+            visitedMap.Add(rootIsland, rootIsland.Clone(board));
+
+            while (queue.Count > 0)
+            {
+                var island = queue.Dequeue();
+                var clonedIsland = visitedMap[island];
+
+                foreach (var neighbour in island.Neighbours)
+                {
+                    if (visitedMap.ContainsKey(neighbour))
+                    {
+                        //clonedIsland.Connect(visitedMap[neighbour]);
+                        continue;
+                    }
+
+                    Island clonedNeighbour = neighbour.Clone(board);
+                    //clonedIsland.Connect(clonedNeighbour);
+
+                    queue.Enqueue(neighbour);
+                    visitedMap.Add(neighbour, clonedNeighbour);
+                }
+            }
+
+            // Clone Pointers
+            foreach (var island in visitedMap)
+            {
+                foreach (var neighbour in island.Key.Neighbours)
+                {
+                    island.Value.Neighbours.Add(visitedMap[neighbour]);
+                }
+            }
+
+            foreach (var pivot in Pivots)
+            {
+                board.Pivots.Add(pivot.Key, visitedMap[pivot.Value]);
+            }
+        }
+        #endregion
     }
+
+    //public static class BoardExtensions
+    //{
+    //    public static void BulkAddIsland(this ConcurrentDictionary<Island, ConcurrentDictionary<Board, Island>> dictionary, List<Board> boards, Island key)
+    //    {
+    //        if (dictionary.ContainsKey(key))
+    //            throw new ArgumentException("This key already exists in the visited dictionary.");
+
+    //        dictionary.TryAdd(key, new ConcurrentDictionary<Board, Island>());
+    //        foreach (var board in boards)
+    //            dictionary[key].TryAdd(board, key.Clone(board));
+    //    }
+
+    //    public static void BulkClonePivot(this ConcurrentDictionary<Island, ConcurrentDictionary<Board, Island>> dictionary, List<Board> boards, KeyValuePair<string, Island> pivot)
+    //    {
+    //        foreach (var board in boards)
+    //            board.Pivots.Add(pivot.Key, dictionary[pivot.Value][board]);
+    //    }
+    //}
 }
