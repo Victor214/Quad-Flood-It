@@ -5,14 +5,14 @@ namespace Solver
 {
     public class State //: IEquatable<State>
     {
-        public Board RootBoard { get; set; }
+        public RootBoard RootBoard;
         public List<Action> Actions { get; set; }
         public State? Parent { get; set; }
         public int PathCost { get; set; }
         public string? Pivot { get; set; }
 
-        private Board? _currentBoard;
-        public Board CurrentBoard
+        private PartialBoard? _currentBoard;
+        public PartialBoard CurrentBoard
         {
             get
             {
@@ -21,14 +21,14 @@ namespace Solver
                     // Optimization: If parent's current board is loaded, take a shortcut, loading from it.
                     if (Parent?._currentBoard != null)
                     {
-                        _currentBoard = Parent._currentBoard.Clone();
+                        _currentBoard = Parent._currentBoard.CreatePartialBoard(Pivot!);
 
                         Action lastAction = Actions.LastOrDefault()!;
                         _currentBoard.Paint(_currentBoard.Pivots[lastAction.Pivot!], lastAction.Color); // Only need to apply the latest action
                     }
                     else
                     {
-                        _currentBoard = RootBoard.Clone();
+                        _currentBoard = RootBoard.CreatePartialBoard(Pivot!);
                         foreach (var action in Actions)
                         {
                             _currentBoard.Paint(_currentBoard.Pivots[action.Pivot!], action.Color);
@@ -40,9 +40,9 @@ namespace Solver
             }
         }
 
-        public State(Board board)
+        public State(RootBoard rootBoard)
         {
-            RootBoard = board;
+            RootBoard = rootBoard;
             PathCost = 0;
             Actions = new List<Action>();
             Pivot = PickPivot();
@@ -58,14 +58,14 @@ namespace Solver
             Actions.Add(action);
         }
 
-        public int GetHeuristic(Board? board = null, string? pivot = null)
+        public int GetHeuristic(string? pivot = null)
         {
             if (pivot == null)
                 pivot = Pivot;
 
             // Maybe make heuristic as board total colors, and board max depth as tiebreaker
             int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles);
-            return CurrentBoard.TotalColors /*+ CurrentBoard.GetBoardMaxDepth(pivot!)*/ + tilesRemaining;
+            return CurrentBoard.GetRemainingColors().Count + tilesRemaining;
         }
 
         public int GetEvaluationFunction()
@@ -107,10 +107,10 @@ namespace Solver
                 if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
                     return;
 
-                Action action = new Action(this.Pivot, color);
+                Action action = new Action(Pivot, color);
                 State state = new State(this, action);
 
-                state._currentBoard = CurrentBoard.Clone();
+                state._currentBoard = CurrentBoard.CreatePartialBoard(Pivot!);
                 state._currentBoard.Paint(state._currentBoard.Pivots[action.Pivot!], action.Color);
 
                 states.Add(state);
@@ -121,6 +121,9 @@ namespace Solver
 
         public bool IsGoal()
         {
+            if (CurrentBoard.Pivots.Count < 4)
+                return false;
+
             foreach (var pivot in CurrentBoard.Pivots)
             {
                 if (pivot.Value.Neighbours.Count > 0)
@@ -180,11 +183,9 @@ namespace Solver
             string? bestPivot = null;
             int bestPivotDepth = int.MaxValue;
 
-            foreach (var pivot in CurrentBoard.Pivots)
+            foreach (var pivot in RootBoard.Pivots)
             {
-                // Get minimum distance among each pivot's max reach.
-                // In other words, the best pivot is the one with the least flips to solution.
-                int depth = CurrentBoard.GetBoardMaxDepth(pivot.Key);
+                int depth = RootBoard.GetBoardMaxDepth(pivot.Key);
                 if (depth < bestPivotDepth)
                 {
                     bestPivotDepth = depth;

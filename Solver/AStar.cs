@@ -14,9 +14,9 @@ namespace Solver
         private List<StatePriority> Open { get; set; } = new();
         private HashSet<State> Closed { get; set; } = new();
 
-        public AStar(Board board)
+        public AStar(RootBoard rootBoard)
         {
-            InitialState = new State(board);
+            InitialState = new State(rootBoard);
             Open.AddSorted(new StatePriority(InitialState, InitialState.GetEvaluationFunction()));
             //InitialState.ClearBoard();
         }
@@ -31,7 +31,6 @@ namespace Solver
                 timer.Start();
 
                 State state = Open.Dequeue();
-                
 
                 if (state.IsGoal())
                     return state;
