@@ -34,6 +34,7 @@ namespace Game
         {
             PartialBoard board = new PartialBoard(rootBoard: this, width: this.Width, height: this.Height);
             CloneIslands(board, pivot);
+            board.Merged.Add(Pivots[pivot]);
 
             return board;
         }

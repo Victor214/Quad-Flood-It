@@ -25,7 +25,6 @@ namespace Game
             // * It cannot be painted/merged, so its considered as "already painted", as its already part of the pivot
             Island pivotIsland = this.Pivots[pivot];
             cloneMap.Add(pivotIsland, pivotIsland.Clone());
-            board.Merged.Add(pivotIsland);
 
             // Connect neighbouring islands
             foreach (var neighbour in pivotIsland.Neighbours)

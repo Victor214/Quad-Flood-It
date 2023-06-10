@@ -18,18 +18,6 @@ namespace Game
             RootBoard = rootBoard;
         }
 
-        #region Board Cloning
-        public override PartialBoard CreatePartialBoard(string pivot)
-        {
-            PartialBoard board = new PartialBoard(rootBoard: RootBoard, width: this.Width, height: this.Height);
-            CloneIslands(board, pivot);
-
-            // Copy closed list to cloned partial board
-            board.Merged = Merged.ToHashSet();
-            return board;
-        }
-        #endregion
-
         //public Dictionary<Island, Island> Enumerate()
         //{
         //    // Non-Pivot nodes are guaranteed to be untouched.
@@ -66,6 +54,18 @@ namespace Game
             return Pivots[pivot].Neighbours.Select(x => x.Color).Distinct().ToList();
         }
 
+        #region Board Cloning
+        public override PartialBoard CreatePartialBoard(string pivot)
+        {
+            PartialBoard board = new PartialBoard(rootBoard: RootBoard, width: this.Width, height: this.Height);
+            CloneIslands(board, pivot);
+
+            // Copy closed list to cloned partial board
+            board.Merged = Merged.ToHashSet();
+            return board;
+        }
+        #endregion
+
         #region Painting
         public void Paint(Island source, int newColor)
         {
@@ -94,11 +94,12 @@ namespace Game
         {
             foreach (var unexistingNeighbour in PartialToRoot[mergingNode].Neighbours)
             {
-                if (!rootToPartial.ContainsKey(unexistingNeighbour)) // Neighbour already exists in graph
+                // Already Merged (Part of partial's pivot)
+                if (Merged.Contains(unexistingNeighbour))
                     continue;
 
-                // Check closed list (Already merged).
-                if (Merged.Contains(unexistingNeighbour))
+                // Already exists as an open node in graph (leaf)
+                if (rootToPartial.ContainsKey(unexistingNeighbour))
                     continue;
 
                 // Clone and create bidirectional dictionary references from root to partial, and vice versa
@@ -106,13 +107,14 @@ namespace Game
                 PartialToRoot.Add(rootToPartial[unexistingNeighbour], unexistingNeighbour);
 
                 // Connect to neighbours which already exist in partial board
+                // 'unexistingNeighbour' will never be adjacent to pivot node, so neighbour will never be the main pivot node
                 foreach (var neighbour in unexistingNeighbour.Neighbours)
                 {
                     if (rootToPartial.ContainsKey(neighbour))
                         rootToPartial[unexistingNeighbour].Connect(rootToPartial[neighbour]);
                 }
 
-                // If pivot, then add as pivot (can be multiple)
+                // If pivot node in root board, then add as pivot in partial (can be multiple)
                 foreach (var pivot in RootBoard.Pivots)
                 {
                     if (pivot.Value == unexistingNeighbour)
