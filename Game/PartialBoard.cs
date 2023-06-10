@@ -18,6 +18,18 @@ namespace Game
             RootBoard = rootBoard;
         }
 
+        #region Board Cloning
+        public override PartialBoard CreatePartialBoard(string pivot)
+        {
+            PartialBoard board = new PartialBoard(rootBoard: RootBoard, width: this.Width, height: this.Height);
+            CloneIslands(board, pivot);
+
+            // Copy closed list to cloned partial board
+            board.Merged = Merged.ToHashSet();
+            return board;
+        }
+        #endregion
+
         //public Dictionary<Island, Island> Enumerate()
         //{
         //    // Non-Pivot nodes are guaranteed to be untouched.

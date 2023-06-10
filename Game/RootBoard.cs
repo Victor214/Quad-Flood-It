@@ -29,6 +29,17 @@ namespace Game
             GenerateGraph(board);
         }
 
+        #region Board Cloning
+        public override PartialBoard CreatePartialBoard(string pivot)
+        {
+            PartialBoard board = new PartialBoard(rootBoard: this, width: this.Width, height: this.Height);
+            CloneIslands(board, pivot);
+
+            return board;
+        }
+        #endregion
+
+
         #region Board Parsing
         private void GenerateGraph(int[,] board)
         {

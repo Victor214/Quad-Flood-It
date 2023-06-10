@@ -14,34 +14,16 @@ namespace Game
             Height = height;
         }
 
-        #region Board Replicating (Single)
-        public PartialBoard CreatePartialBoard(string pivot)
-        {
-            RootBoard rootBoard;
-            if (this is PartialBoard)
-                rootBoard = (this as PartialBoard)!.RootBoard;
-            else if (this is RootBoard)
-                rootBoard = (this as RootBoard)!;
-            else
-                throw new ArgumentException("The current inherited board is of unknown type!");
+        #region Board Cloning
+        public abstract PartialBoard CreatePartialBoard(string pivot);
 
-            PartialBoard board = new PartialBoard(rootBoard: rootBoard, width: this.Width, height: this.Height);
-            CloneIslands(board, pivot);
-
-            // Copy closed list to cloned partial board
-            if (this is PartialBoard partialThis)
-                board.Merged = partialThis.Merged.ToHashSet();
-
-            return board;
-        }
-
-        private void CloneIslands(PartialBoard board, string pivot)
+        protected void CloneIslands(PartialBoard board, string pivot)
         {
             var cloneMap = new Dictionary<Island, Island>();
 
             // Clone pivot, and add to merged/closed list
             // * It cannot be painted/merged, so its considered as "already painted", as its already part of the pivot
-            Island pivotIsland = board.RootBoard.Pivots[pivot];
+            Island pivotIsland = this.Pivots[pivot];
             cloneMap.Add(pivotIsland, pivotIsland.Clone());
             board.Merged.Add(pivotIsland);
 
@@ -55,7 +37,7 @@ namespace Game
             }
 
             // Generate / Adjust Pivot Pointers, if they exist
-            foreach (var rootPivot in board.RootBoard.Pivots)
+            foreach (var rootPivot in this.Pivots)
             {
                 if (cloneMap.ContainsKey(rootPivot.Value))
                     board.Pivots.Add(rootPivot.Key, cloneMap[rootPivot.Value]);
