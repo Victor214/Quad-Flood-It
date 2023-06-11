@@ -8,10 +8,20 @@ namespace Game
         public int Height { get; set; }
         public Dictionary<string, Island> Pivots { get; set; } = new Dictionary<string, Island>();
 
+        protected int[] _colorMap;
+        public int TotalColors
+        {
+            get
+            {
+                return _colorMap.Count(x => x > 0);
+            }
+        }
+
         protected Board(int width, int height)
         {
             Width = width;
             Height = height;
+            _colorMap = new int[1];
         }
 
         #region Board Cloning
@@ -56,71 +66,6 @@ namespace Game
             return cloneMap;
         }
 
-        #endregion
-
-        #region Equals / GetHashCode Overriding
-        // Seems redundant, but required to enable hash and value equality checks on other methods
-
-        // Two boards are equal if islands are equal value-wise
-        //public bool Equals(Board? other)
-        //{
-        //    if (ReferenceEquals(other, null))
-        //        return false;
-        //    if (ReferenceEquals(this, other))
-        //        return true;
-
-        //    var islands = this.Enumerate();
-        //    var otherIslands = other.Enumerate();
-        //    if (islands.Count != otherIslands.Count)
-        //        return false;
-
-        //    foreach (var island in islands)
-        //    {
-        //        if (!otherIslands.ContainsKey(island.Key)) // GetHashCode Check
-        //            return false;
-
-        //        if (!island.Key.Equals(otherIslands[island.Key])) // Actual ValueEquals Check
-        //            return false;
-        //    }
-
-        //    return true;
-        //}
-
-        //public override bool Equals(object? other) => Equals(other as Board);
-
-        //public static bool operator ==(Board? left, Board? right)
-        //{
-        //    if (ReferenceEquals(left, right))
-        //        return true;
-        //    if (ReferenceEquals(left, null))
-        //        return false;
-        //    if (ReferenceEquals(right, null))
-        //        return false;
-
-        //    return left.Equals(right);
-        //}
-
-        //public static bool operator !=(Board? left, Board? right)
-        //{
-        //    return !(left == right);
-        //}
-
-        //// Board's hashcode is the bitwise XOR combination of all islands
-        //public override int GetHashCode()
-        //{
-        //    unchecked
-        //    {
-        //        var islands = this.Enumerate();
-        //        int hashcode = 0;
-        //        foreach (var island in islands)
-        //        {
-        //            hashcode ^= island.GetHashCode();
-
-        //        }
-
-        //        return hashcode;
-        //    }
-        //}
         #endregion
     }
 }

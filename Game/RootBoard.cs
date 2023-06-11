@@ -15,6 +15,7 @@ namespace Game
             string[] line = boardLines[0].Split(' ');
             Width = Convert.ToInt32(line[0]);
             Height = Convert.ToInt32(line[1]);
+            _colorMap = new int[Convert.ToInt32(line[2])];
 
             var board = new int[Height, Width];
             for (int i = 0; i < Height; i++)
@@ -32,7 +33,7 @@ namespace Game
         #region Board Cloning
         public override PartialBoard CreatePartialBoard(string? pivot)
         {
-            PartialBoard board = new PartialBoard(rootBoard: this, expandingPivot: pivot!, width: this.Width, height: this.Height);
+            PartialBoard board = new PartialBoard(rootBoard: this, expandingPivot: pivot!, width: this.Width, height: this.Height, colorMap: _colorMap);
             var clonedMap = CloneIslands(board, pivot!);
 
             // Add expandingPivot to merged, as nothing besides the root has been painted so far
@@ -63,6 +64,7 @@ namespace Game
                     var tiles = GetIslandTiles(board, i, j).ToList();
                     island.Color = board[i, j];
                     island.Tiles = tiles.Count;
+                    _colorMap[island.Color - 1] += 1;
 
                     foreach (var tile in tiles)
                         islandMap[tile.Y, tile.X] = island;

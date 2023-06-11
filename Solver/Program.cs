@@ -12,4 +12,4 @@ if (solution == null)
     return;
 }
 
-Console.WriteLine(String.Join(" ", solution.Actions.Select(x => $"{x.Pivot}{x.Color}")));
+solution.PrintState();

@@ -14,49 +14,12 @@ namespace Game
         public Dictionary<Island, Island> PartialToRoot { get; set; } = new Dictionary<Island, Island>();
         public HashSet<Island> Merged = new HashSet<Island>();
 
-        public PartialBoard(RootBoard rootBoard, string expandingPivot, int width, int height)
+        public PartialBoard(RootBoard rootBoard, string expandingPivot, int width, int height, int[] colorMap)
             :base(width, height)
         {
             RootBoard = rootBoard;
             ExpandingPivot = expandingPivot;
-        }
-
-        public HashSet<Island> Enumerate()
-        {
-            // Returns all islands not part of ExpandingPivot (All - Merged).
-            // Non-ExpandingPivot islands are guaranteed to be untouched.
-
-            var visited = new HashSet<Island>();
-            var result = new HashSet<Island>();
-            var queue = new Queue<Island>();
-
-            queue.Enqueue(RootBoard.Pivots[ExpandingPivot]);
-            visited.Add(queue.Peek());
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-
-                // Iterate through all, but only add non-merged (not part of ExpandingPivot) as result
-                if (!Merged.Contains(current))
-                    result.Add(current);
-
-                foreach (var island in current.Neighbours)
-                {
-                    if (visited.Contains(island))
-                        continue;
-
-                    visited.Add(island);
-                    queue.Enqueue(island);
-                }
-            }
-
-            return result;
-        }
-
-        public List<int> GetRemainingColors()
-        {
-            return Enumerate().Select(x => x.Color).Distinct().ToList();
+            _colorMap = colorMap.ToArray();
         }
 
         public List<int> GetAdjacentColors()
@@ -67,7 +30,7 @@ namespace Game
         #region Board Cloning
         public override PartialBoard CreatePartialBoard(string? pivot = null)
         {
-            PartialBoard board = new PartialBoard(rootBoard: RootBoard, expandingPivot: ExpandingPivot, width: Width, height: Height);
+            PartialBoard board = new PartialBoard(rootBoard: RootBoard, expandingPivot: ExpandingPivot, width: Width, height: Height, colorMap: _colorMap);
             var clonedMap = CloneIslands(board, ExpandingPivot);
 
             // Copy closed list to cloned partial board
@@ -96,12 +59,15 @@ namespace Game
 
             int oldColor = source.Color;
             source.Color = newColor;
+            _colorMap[oldColor - 1] -= 1;
+            _colorMap[newColor - 1] += 1;
 
             // Looking beyond the immediate neighbours for same-color neighbours doesn't make sense / is not required, because these islands are assumed to be already valid.
             foreach (var neighbour in source.Neighbours.Where(x => x.Color == newColor).ToList())
             {
                 Merge(source, neighbour);
                 AdjustPivot(source, neighbour); // This is needed for when a pivot is absorbing another pivot
+                _colorMap[newColor - 1] -= 1;
             }
         }
 

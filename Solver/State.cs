@@ -65,38 +65,13 @@ namespace Solver
 
             // Maybe make heuristic as board total colors, and board max depth as tiebreaker
             int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles);
-            return CurrentBoard.GetRemainingColors().Count + tilesRemaining;
+            return CurrentBoard.TotalColors + tilesRemaining;
         }
 
         public int GetEvaluationFunction()
         {
             return PathCost + GetHeuristic();
         }
-
-        //public List<State> Expand()
-        //{
-        //    List<State> states = new List<State>();
-        //    var remainingColors = CurrentBoard.GetRemainingColors();
-        //    var clones = CurrentBoard.BulkClone(remainingColors.Count);
-
-        //    for (int i = 0; i < remainingColors.Count; i++)
-        //    {
-        //        var color = remainingColors[i];
-        //        if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
-        //            continue;
-
-
-        //        Action action = new Action(this.Pivot, color);
-        //        State state = new State(this, action);
-
-        //        state._currentBoard = clones[i];
-        //        state._currentBoard.Paint(state._currentBoard.Pivots[action.Pivot!], action.Color);
-
-        //        states.Add(state);
-        //    }
-
-        //    return states;
-        //}
 
         public List<State> Expand()
         {
@@ -138,6 +113,12 @@ namespace Solver
         public void ClearBoard()
         {
             _currentBoard = null;
+        }
+
+        public void PrintState()
+        {
+            Console.WriteLine($"{Actions.Count}");
+            Console.WriteLine(String.Join(" ", Actions.Select(x => $"{x.Pivot} {x.Color}")) + "\n");
         }
 
         #region Equals / GetHashCode Overriding

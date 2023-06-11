@@ -38,27 +38,13 @@ namespace Solver
                 List<State> children = state.Expand();
                 foreach (State child in children)
                 {
-                    // State already exists, so replace if better than previously found
-                    // REMINDER: A State is equal to another state if their respective CurrentBoards are equal.
-                    //if (Closed.Contains(child))
-                    //{
-                    //    Closed.TryGetValue(child, out State? repeated);
-                    //    if (child.PathCost < repeated!.PathCost)
-                    //    {
-                    //        Closed.Remove(repeated);
-                    //        Closed.Add(child);
-                    //    }
-
-                    //    continue;
-                    //}
-
-
+                    // Boards won't repeat because we only choose adjacent colors as a branching strategy, merging with other squares uniquely.
                     Open.AddSorted(new StatePriority(child, child.GetEvaluationFunction()));
                     child.ClearBoard();
                 }
 
                 timer.Stop();
-                Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / Elapsed: {timer.ElapsedMilliseconds}ms");
+                Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / TotalColors: {state.CurrentBoard.TotalColors} / Elapsed: {timer.ElapsedMilliseconds}ms");
 
                 Closed.Add(state);
                 state.ClearBoard();
