@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,59 +10,73 @@ namespace Game
     public class PartialBoard : Board
     {
         public RootBoard RootBoard { get; set; }
+        public string ExpandingPivot { get; set; }
         public Dictionary<Island, Island> PartialToRoot { get; set; } = new Dictionary<Island, Island>();
         public HashSet<Island> Merged = new HashSet<Island>();
 
-        public PartialBoard(RootBoard rootBoard, int width, int height)
+        public PartialBoard(RootBoard rootBoard, string expandingPivot, int width, int height)
             :base(width, height)
         {
             RootBoard = rootBoard;
+            ExpandingPivot = expandingPivot;
         }
 
-        //public Dictionary<Island, Island> Enumerate()
-        //{
-        //    // Non-Pivot nodes are guaranteed to be untouched.
-
-        //    var result = new Dictionary<Island, Island>();
-        //    var queue = new Queue<Island>();
-
-        //    queue.Enqueue(Pivots.First().Value);
-        //    result.Add(queue.Peek(), queue.Peek());
-
-        //    while (queue.Count > 0)
-        //    {
-        //        var current = queue.Dequeue();
-        //        foreach (var island in current.Neighbours)
-        //        {
-        //            if (result.ContainsKey(island))
-        //                continue;
-
-        //            result.Add(island, island);
-        //            queue.Enqueue(island);
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
-        //public List<int> GetRemainingColors()
-        //{
-        //    return Enumerate().Select(x => x.Key.Color).Distinct().ToList();
-        //}
-
-        public List<int> GetAdjacentColors(string pivot)
+        public HashSet<Island> Enumerate()
         {
-            return Pivots[pivot].Neighbours.Select(x => x.Color).Distinct().ToList();
+            // Returns all islands not part of ExpandingPivot (All - Merged).
+            // Non-ExpandingPivot islands are guaranteed to be untouched.
+
+            var visited = new HashSet<Island>();
+            var result = new HashSet<Island>();
+            var queue = new Queue<Island>();
+
+            queue.Enqueue(RootBoard.Pivots[ExpandingPivot]);
+            visited.Add(queue.Peek());
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+
+                // Iterate through all, but only add non-merged (not part of ExpandingPivot) as result
+                if (!Merged.Contains(current))
+                    result.Add(current);
+
+                foreach (var island in current.Neighbours)
+                {
+                    if (visited.Contains(island))
+                        continue;
+
+                    visited.Add(island);
+                    queue.Enqueue(island);
+                }
+            }
+
+            return result;
+        }
+
+        public List<int> GetRemainingColors()
+        {
+            return Enumerate().Select(x => x.Color).Distinct().ToList();
+        }
+
+        public List<int> GetAdjacentColors()
+        {
+            return Pivots[ExpandingPivot].Neighbours.Select(x => x.Color).Distinct().ToList();
         }
 
         #region Board Cloning
-        public override PartialBoard CreatePartialBoard(string pivot)
+        public override PartialBoard CreatePartialBoard(string? pivot = null)
         {
-            PartialBoard board = new PartialBoard(rootBoard: RootBoard, width: this.Width, height: this.Height);
-            CloneIslands(board, pivot);
+            PartialBoard board = new PartialBoard(rootBoard: RootBoard, expandingPivot: ExpandingPivot, width: Width, height: Height);
+            var clonedMap = CloneIslands(board, ExpandingPivot);
 
             // Copy closed list to cloned partial board
             board.Merged = Merged.ToHashSet();
+
+            // Build PartialToRoot with board's cloned islands as keys, and root's islands as values 
+            board.PartialToRoot = Pivots[ExpandingPivot].Neighbours
+                .ToDictionary(x => clonedMap[x], x => PartialToRoot[x]);
+
             return board;
         }
         #endregion

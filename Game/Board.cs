@@ -15,33 +15,47 @@ namespace Game
         }
 
         #region Board Cloning
-        public abstract PartialBoard CreatePartialBoard(string pivot);
+        public abstract PartialBoard CreatePartialBoard(string? pivot = null);
 
-        protected void CloneIslands(PartialBoard board, string pivot)
+        protected Dictionary<Island, Island> CloneIslands(PartialBoard board, string pivot)
         {
             var cloneMap = new Dictionary<Island, Island>();
 
             // Clone pivot, and add to merged/closed list
             // * It cannot be painted/merged, so its considered as "already painted", as its already part of the pivot
-            Island pivotIsland = this.Pivots[pivot];
+            Island pivotIsland = Pivots[pivot];
             cloneMap.Add(pivotIsland, pivotIsland.Clone());
 
-            // Connect neighbouring islands
+            // Create islands
             foreach (var neighbour in pivotIsland.Neighbours)
             {
                 // Clone Island
                 cloneMap.Add(neighbour, neighbour.Clone());
-                board.PartialToRoot.Add(cloneMap[neighbour], neighbour);
-                cloneMap[pivotIsland].Connect(cloneMap[neighbour]);
+            }
+
+            // Clone Pointers
+            foreach (var islandPair in cloneMap)
+            {
+                var island = islandPair.Key;
+                var clonedIsland = islandPair.Value;
+
+                foreach (var neighbour in island.Neighbours)
+                {
+                    if (cloneMap.ContainsKey(neighbour))
+                        clonedIsland.Neighbours.Add(cloneMap[neighbour]);
+                }
             }
 
             // Generate / Adjust Pivot Pointers, if they exist
-            foreach (var rootPivot in this.Pivots)
+            foreach (var rootPivot in Pivots)
             {
                 if (cloneMap.ContainsKey(rootPivot.Value))
                     board.Pivots.Add(rootPivot.Key, cloneMap[rootPivot.Value]);
             }
+
+            return cloneMap;
         }
+
         #endregion
 
         #region Equals / GetHashCode Overriding

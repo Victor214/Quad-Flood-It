@@ -30,11 +30,17 @@ namespace Game
         }
 
         #region Board Cloning
-        public override PartialBoard CreatePartialBoard(string pivot)
+        public override PartialBoard CreatePartialBoard(string? pivot)
         {
-            PartialBoard board = new PartialBoard(rootBoard: this, width: this.Width, height: this.Height);
-            CloneIslands(board, pivot);
-            board.Merged.Add(Pivots[pivot]);
+            PartialBoard board = new PartialBoard(rootBoard: this, expandingPivot: pivot!, width: this.Width, height: this.Height);
+            var clonedMap = CloneIslands(board, pivot!);
+
+            // Add expandingPivot to merged, as nothing besides the root has been painted so far
+            board.Merged.Add(Pivots[pivot!]);
+
+            // Build PartialToRoot with board's cloned islands as keys, and root's islands as values 
+            board.PartialToRoot = Pivots[pivot!].Neighbours
+                .ToDictionary(x => clonedMap[x], x => x);
 
             return board;
         }

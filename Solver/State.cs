@@ -21,7 +21,7 @@ namespace Solver
                     // Optimization: If parent's current board is loaded, take a shortcut, loading from it.
                     if (Parent?._currentBoard != null)
                     {
-                        _currentBoard = Parent._currentBoard.CreatePartialBoard(Pivot!);
+                        _currentBoard = Parent._currentBoard.CreatePartialBoard();
 
                         Action lastAction = Actions.LastOrDefault()!;
                         _currentBoard.Paint(_currentBoard.Pivots[lastAction.Pivot!], lastAction.Color); // Only need to apply the latest action
@@ -102,10 +102,11 @@ namespace Solver
         {
             ConcurrentBag<State> states = new ConcurrentBag<State>();
 
-            Parallel.ForEach(CurrentBoard.GetAdjacentColors(Pivot!), color =>
+            //Parallel.ForEach(CurrentBoard.GetAdjacentColors(), color =>
+            foreach (var color in CurrentBoard.GetAdjacentColors())
             {
-                if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color.
-                    return;
+                if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color. (This check is likely never reached, there will never be an adjacent of same color)
+                    continue;
 
                 Action action = new Action(Pivot, color);
                 State state = new State(this, action);
@@ -114,7 +115,8 @@ namespace Solver
                 state._currentBoard.Paint(state._currentBoard.Pivots[action.Pivot!], action.Color);
 
                 states.Add(state);
-            });
+            }
+            //});
 
             return states.ToList();
         }
