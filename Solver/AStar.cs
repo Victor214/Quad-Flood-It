@@ -44,7 +44,7 @@ namespace Solver
                 }
 
                 timer.Stop();
-                Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / TotalColors: {state.CurrentBoard.TotalColors} / Elapsed: {timer.ElapsedMilliseconds}ms");
+                Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / TotalColors: {state.CurrentBoard.TotalColors} / Heuristic: {state.GetHeuristic()} / Elapsed: {timer.ElapsedMilliseconds}ms");
 
                 Closed.Add(state);
                 state.ClearBoard();
@@ -52,11 +52,6 @@ namespace Solver
 
             return null;
         }
-        #endregion
-
-
-        #region Private Methods
-
         #endregion
     }
 

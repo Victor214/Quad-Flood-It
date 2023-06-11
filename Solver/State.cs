@@ -58,17 +58,17 @@ namespace Solver
             Actions.Add(action);
         }
 
-        public int GetHeuristic(string? pivot = null)
+        public float GetHeuristic(string? pivot = null)
         {
             if (pivot == null)
                 pivot = Pivot;
 
             // Maybe make heuristic as board total colors, and board max depth as tiebreaker
-            int tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles);
-            return CurrentBoard.TotalColors + tilesRemaining;
+            float tilesRemaining = ((CurrentBoard.Width * CurrentBoard.Height) - CurrentBoard.Pivots[pivot!].Tiles);
+            return CurrentBoard.TotalColors + tilesRemaining/3;
         }
 
-        public int GetEvaluationFunction()
+        public float GetEvaluationFunction()
         {
             return PathCost + GetHeuristic();
         }

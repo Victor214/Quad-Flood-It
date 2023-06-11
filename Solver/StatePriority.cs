@@ -9,9 +9,9 @@ namespace Solver
     public class StatePriority
     {
         public State State { get; set; }
-        public int Priority { get; set; }
+        public float Priority { get; set; }
 
-        public StatePriority(State state, int priority)
+        public StatePriority(State state, float priority)
         {
             State = state;
             Priority = priority;
