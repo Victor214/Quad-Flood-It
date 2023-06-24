@@ -12,13 +12,11 @@ namespace Solver
     {
         private State InitialState { get; set; }
         private List<StatePriority> Open { get; set; } = new();
-        private HashSet<State> Closed { get; set; } = new();
 
         public AStar(RootBoard rootBoard)
         {
             InitialState = new State(rootBoard);
             Open.AddSorted(new StatePriority(InitialState, InitialState.GetEvaluationFunction()));
-            //InitialState.ClearBoard();
         }
 
         #region Public Methods
@@ -44,9 +42,8 @@ namespace Solver
                 }
 
                 timer.Stop();
-                Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / TotalColors: {state.CurrentBoard.TotalColors} / Heuristic: {state.GetHeuristic()} / Elapsed: {timer.ElapsedMilliseconds}ms");
+                //Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / TotalColors: {state.CurrentBoard.TotalColors} / Heuristic: {state.GetHeuristic()} / Elapsed: {timer.ElapsedMilliseconds}ms");
 
-                Closed.Add(state);
                 state.ClearBoard();
             }
 

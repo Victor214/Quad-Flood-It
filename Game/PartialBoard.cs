@@ -12,7 +12,7 @@ namespace Game
         public RootBoard RootBoard { get; set; }
         public string ExpandingPivot { get; set; }
         public Dictionary<Island, Island> PartialToRoot { get; set; } = new Dictionary<Island, Island>();
-        public HashSet<Island> Merged = new HashSet<Island>();
+        public HashSet<Island> Merged { get; set; } = new HashSet<Island>();
 
         public PartialBoard(RootBoard rootBoard, string expandingPivot, int width, int height, int[] colorMap)
             :base(width, height)
