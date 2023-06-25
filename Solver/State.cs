@@ -3,15 +3,15 @@ using System.Collections.Concurrent;
 
 namespace Solver
 {
-    public class State //: IEquatable<State>
+    public class State
     {
-        public RootBoard RootBoard;
+        public RootBoard RootBoard { get; set; } // Pointer to the initial-state board. This points to the same RootBoard for every state
         public List<Action> Actions { get; set; }
         public State? Parent { get; set; }
         public int PathCost { get; set; }
         public string? Pivot { get; set; }
 
-        private PartialBoard? _currentBoard;
+        private PartialBoard? _currentBoard; // This recreates a board from root board and all the actions which have been made. A Partial Board is generated, which is composed only of the Painted island (node), and the adjacent islands (nodes) which are eligible to be painted in the next turn.
         public PartialBoard CurrentBoard
         {
             get
@@ -40,6 +40,7 @@ namespace Solver
             }
         }
 
+        // Initial State Constructor
         public State(RootBoard rootBoard)
         {
             RootBoard = rootBoard;
@@ -48,6 +49,7 @@ namespace Solver
             Pivot = PickPivot();
         }
 
+        // Child States Constructor
         public State(State source, Action action)
         {
             RootBoard = source.RootBoard;
@@ -77,7 +79,6 @@ namespace Solver
         {
             ConcurrentBag<State> states = new ConcurrentBag<State>();
 
-            //Parallel.ForEach(CurrentBoard.GetAdjacentColors(), color =>
             foreach (var color in CurrentBoard.GetAdjacentColors())
             {
                 if (color == CurrentBoard.Pivots[Pivot!].Color) // Except current color. (This check is likely never reached, there will never be an adjacent of same color)
@@ -91,11 +92,11 @@ namespace Solver
 
                 states.Add(state);
             }
-            //});
 
             return states.ToList();
         }
 
+        // Checks if all pivots have been generated, and if none of them have neighbours (which is a cheap way to check if it is a goal state)
         public bool IsGoal()
         {
             if (CurrentBoard.Pivots.Count < 4)
@@ -110,57 +111,20 @@ namespace Solver
             return true;
         }
 
+        // Removes currentBoard from memory
         public void ClearBoard()
         {
             _currentBoard = null;
         }
 
-        public void PrintState()
+        public void PrintActions()
         {
             Console.WriteLine($"{Actions.Count}");
             Console.WriteLine(String.Join(" ", Actions.Select(x => $"{x.Pivot} {x.Color}")) + "\n");
         }
 
-        #region Equals / GetHashCode Overriding
-        //public bool Equals(State? other)
-        //{
-        //    if (ReferenceEquals(other, null))
-        //        return false;
-        //    if (ReferenceEquals(this, other))
-        //        return true;
-
-        //    return CurrentBoard.Equals(other.CurrentBoard);
-        //}
-
-        //public override bool Equals(object? other) => Equals(other as State);
-
-        //public static bool operator==(State? left, State? right)
-        //{
-        //    if (ReferenceEquals(left, right))
-        //        return true;
-        //    if (ReferenceEquals(left, null))
-        //        return false;
-        //    if (ReferenceEquals(right, null))
-        //        return false;
-
-        //    return left.Equals(right);
-        //}
-
-        //public static bool operator!=(State? left, State? right)
-        //{
-        //    return !(left == right);
-        //}
-
-        //public override int GetHashCode()
-        //{
-        //    unchecked
-        //    {
-        //        return CurrentBoard.GetHashCode();
-        //    }
-        //}
-        #endregion
-
         #region Private Methods
+        // Selects which corner is going to be painted (from now until the solution is found) based on the corner with the least depth.
         private string? PickPivot()
         {
             string? bestPivot = null;

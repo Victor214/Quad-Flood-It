@@ -8,6 +8,7 @@ namespace Game
 {
     public class RootBoard : Board
     {
+        // Creates a new board from user text input
         public RootBoard(string boardText)
             :base(0, 0)
         {
@@ -31,6 +32,7 @@ namespace Game
         }
 
         #region Board Cloning
+        // Creates a new partial board from Root Board.
         public override PartialBoard CreatePartialBoard(string? pivot)
         {
             PartialBoard board = new PartialBoard(rootBoard: this, expandingPivot: pivot!, width: this.Width, height: this.Height, colorMap: _colorMap);

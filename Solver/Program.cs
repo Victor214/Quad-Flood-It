@@ -1,7 +1,7 @@
 ﻿using Game;
 using Solver;
 
-//string boardText = File.ReadAllText(@"Boards/example3_100_100_30.txt");
+//string boardText = File.ReadAllText(@"Boards/exemple8_100_100_30.txt");
 string boardText = BoardInputReader.Read();
 
 RootBoard board = new RootBoard(boardText);
@@ -14,4 +14,4 @@ if (solution == null)
     return;
 }
 
-solution.PrintState();
+solution.PrintActions();

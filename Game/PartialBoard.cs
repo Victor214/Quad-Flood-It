@@ -9,10 +9,10 @@ namespace Game
 {
     public class PartialBoard : Board
     {
-        public RootBoard RootBoard { get; set; }
-        public string ExpandingPivot { get; set; }
-        public Dictionary<Island, Island> PartialToRoot { get; set; } = new Dictionary<Island, Island>();
-        public HashSet<Island> Merged { get; set; } = new HashSet<Island>();
+        public RootBoard RootBoard { get; set; } // The Initial, Complete, Root Board of the puzzle being solved
+        public string ExpandingPivot { get; set; } // Which pivot ("a", "b", "c" or "d") is being explored / expanded
+        public Dictionary<Island, Island> PartialToRoot { get; set; } = new Dictionary<Island, Island>(); // Dictionary that maps this's Island to the corresponding rootBoard's Island.
+        public HashSet<Island> Merged { get; set; } = new HashSet<Island>(); // Used to keep track of which islands which have already been painted. Points to islands on the root board.
 
         public PartialBoard(RootBoard rootBoard, string expandingPivot, int width, int height, int[] colorMap)
             :base(width, height)
@@ -28,6 +28,7 @@ namespace Game
         }
 
         #region Board Cloning
+        // Creates a partial board from this board. Effectively creates a copy of the current board.
         public override PartialBoard CreatePartialBoard(string? pivot = null)
         {
             PartialBoard board = new PartialBoard(rootBoard: RootBoard, expandingPivot: ExpandingPivot, width: Width, height: Height, colorMap: _colorMap);
@@ -45,6 +46,10 @@ namespace Game
         #endregion
 
         #region Painting
+        // Painting operation
+        // * Generates / Brings nodes adjacents to the color being painted, from parent board into the root board.
+        // * Paints corner being expanded as new color, and then merges all adjacent nodes of the new color as one single node.
+        // * Adjusts pivots, because after painting/merging, there can be changes to other pivots.
         public void Paint(Island source, int newColor)
         {
             if (source.Color == newColor)
@@ -71,6 +76,7 @@ namespace Game
             }
         }
 
+        // Brings in adjacent nodes to the node being painted (from RootBoard, which is complete, to PartialBoard, which contains only the Pivot being painted, and its adjacent islands.
         private void GenerateMergingNodeNeighbours(Dictionary<Island, Island> rootToPartial, Island mergingNode)
         {
             foreach (var unexistingNeighbour in PartialToRoot[mergingNode].Neighbours)
@@ -106,6 +112,7 @@ namespace Game
             }
         }
 
+        // Merges two islands into one
         private void Merge(Island source, Island island)
         {
             if (!source.Neighbours.Contains(island))

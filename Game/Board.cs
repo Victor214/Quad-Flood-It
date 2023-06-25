@@ -6,8 +6,12 @@ namespace Game
     {
         public int Width { get; set; }
         public int Height { get; set; }
+
+        // A dictionary of corner indexes ("a", "b", "c" or "d"), and their respective Island (node) in the graph
         public Dictionary<string, Island> Pivots { get; set; } = new Dictionary<string, Island>();
 
+        // Stores a map of colors, with the color id as index, and the amount of islands remaining of that color as value.
+        // When a color reaches 0, it means it is not present in the board anymore.
         protected int[] _colorMap;
         public int TotalColors
         {
@@ -25,21 +29,21 @@ namespace Game
         }
 
         #region Board Cloning
+        // Creates partial board (only pivot and adjacent nodes present)
         public abstract PartialBoard CreatePartialBoard(string? pivot = null);
 
+
+        // Creates a clone of "this" onto PartialBoard. Note that this is a Partial Clone, as it only clones the pivot, and the adjacent islands.
         protected Dictionary<Island, Island> CloneIslands(PartialBoard board, string pivot)
         {
             var cloneMap = new Dictionary<Island, Island>();
 
-            // Clone pivot, and add to merged/closed list
-            // * It cannot be painted/merged, so its considered as "already painted", as its already part of the pivot
             Island pivotIsland = Pivots[pivot];
             cloneMap.Add(pivotIsland, pivotIsland.Clone());
 
             // Create islands
             foreach (var neighbour in pivotIsland.Neighbours)
             {
-                // Clone Island
                 cloneMap.Add(neighbour, neighbour.Clone());
             }
 

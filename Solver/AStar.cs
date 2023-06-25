@@ -25,9 +25,6 @@ namespace Solver
 
             while (Open.Count > 0)
             {
-                Stopwatch timer = new Stopwatch();
-                timer.Start();
-
                 State state = Open.Dequeue();
 
                 if (state.IsGoal())
@@ -36,12 +33,11 @@ namespace Solver
                 List<State> children = state.Expand();
                 foreach (State child in children)
                 {
-                    // Boards won't repeat because we only choose adjacent colors as a branching strategy, merging with other squares uniquely.
+                    // Boards won't repeat because we only choose adjacent colors as a branching strategy, merging with other squares in an irreversible manner.
                     Open.AddSorted(new StatePriority(child, child.GetEvaluationFunction()));
                     child.ClearBoard();
                 }
 
-                timer.Stop();
                 //Console.WriteLine($"Actions: {state.Actions.Count} / Tiles: {state.CurrentBoard.Pivots[state.Pivot!].Tiles} / TotalColors: {state.CurrentBoard.TotalColors} / Heuristic: {state.GetHeuristic()} / Elapsed: {timer.ElapsedMilliseconds}ms");
 
                 state.ClearBoard();

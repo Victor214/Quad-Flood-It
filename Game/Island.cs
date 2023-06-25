@@ -10,14 +10,10 @@ namespace Game
     public class Island //: IEquatable<Island>
     {
         public int Color { get; set; }
-        public int Tiles { get; set; }
+        public int Tiles { get; set; } // Amount of tiles of the current island node
 
+        // Neighbour islands (edges of graph).
         public HashSet<Island> Neighbours { get; set; } = new HashSet<Island>();
-
-        public Island()
-        {
-
-        }
 
         public Island Clone()
         {
@@ -46,64 +42,6 @@ namespace Game
             this.Neighbours.Remove(that);
             that.Neighbours.Remove(this);
         }
-
-        #region Equals / GetHashCode Overriding
-        //public bool Equals(Island? other)
-        //{
-        //    if (ReferenceEquals(other, null))
-        //        return false;
-        //    if (ReferenceEquals(this, other))
-        //        return true;
-
-        //    if (this.Color != other.Color)
-        //        return false;
-
-        //    var tiles = Tiles.ToDictionary(x => x, x => x);
-        //    var otherTiles = other.Tiles.ToDictionary(x => x, x => x);
-
-        //    if (tiles.Count != otherTiles.Count)
-        //        return false;
-
-        //    foreach (var tile in tiles)
-        //    {
-        //        if (!otherTiles.ContainsKey(tile.Key)) // GetHashCode Check
-        //            return false;
-
-        //        if (!tile.Key.Equals(otherTiles[tile.Key])) // Actual ValueEquals Check
-        //            return false;
-        //    }
-
-        //    return true;
-        //}
-
-        //public override bool Equals(object? other) => Equals(other as Island);
-
-        //public static bool operator ==(Island? left, Island? right)
-        //{
-        //    if (ReferenceEquals(left, right))
-        //        return true;
-        //    if (ReferenceEquals(left, null))
-        //        return false;
-        //    if (ReferenceEquals(right, null))
-        //        return false;
-
-        //    return left.Equals(right);
-        //}
-
-        //public static bool operator !=(Island? left, Island? right)
-        //{
-        //    return !(left == right);
-        //}
-
-        //public override int GetHashCode()
-        //{
-        //    int tilesHashCode = Tiles
-        //        .Select(x => x.GetHashCode())
-        //        .Aggregate((result, item) => result ^ item);
-
-        //    return HashCode.Combine(Color, tilesHashCode);
-        //}
-        #endregion
 
     }
 }
